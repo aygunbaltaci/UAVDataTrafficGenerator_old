@@ -5,7 +5,9 @@
 # 
 # This code generates UAV data traffic for
 # uplink channel (from remote controller to UAV).
-#
+# 
+# Prerequisites: pip3 install msvcrt numpy scapy
+# 
 # Author: Aygün Baltaci
 # Institution: Technical University of Munich
 #
@@ -18,19 +20,17 @@ from scapy.utils import rdpcap
 import time
 from datetime import datetime
 import math
-import msvcrt
+import keyboard
+import time
 import numpy as np
 
 # ======== variables
-inputFileName = "straightAscend_flight1_downlink_cut.pcap"
 outputfolder = "outputfiles"
-outputFileName = "downlink2.pcap"
-srcIP = "10.0.0.201" # !!! UPDATE !!! UPDATE THIS LINE EVERYTIME CLIENT HAS NEW IP !!! OTHERWISE, PACKETS MAY NOT REACH TO SERVER SIDE.
-dstIP = "10.0.0.208" # !!! UPDATE !!! IP addr of server
-srcPort = 47813 # UDP port at client
-dstPort = 47811 # UDP port at server
+ip_source = "10.0.0.201" 
+ip_destination = "10.0.0.208" 
+port_source = 47813 
 date = datetime.now().strftime('%Y%m%d_%H%M%S')
-buffercheck_frequency = 1
+buffercheck_frequency = 3 # in how many CPU cycles the buffer to be checked
 
 def pkt_addLayers(pkt):
 	pkt = UDP()/pkt
@@ -104,27 +104,6 @@ def main():
 			break
 		time.sleep(0.1)
 
-	#wrpcap(outputFileName, pktList)
 	print("Packet generation is completed!")
 
 main()
-
-############## USEFUL COMMANDS
-'''
-tcpreplay at client: sudo tcpreplay -q --preload-pcap -i cscotun0 straightAscend_flight1_downlink_scapyModified.pcap
-tcpdump at client: sudo tcpdump -i cscotun0 -n udp port 2399 -vv -X -w test.pcap
-tcpdump at server: sudo tcpdump -i 1 -n udp port 2399 -vv -X -w test3.pcap
-scp at server: sudo scp test3.pcap ubuntulaptop@129.187.212.33:
-increase mtu at client: sudo ifconfig cscotun0 mtu 1500
-
-OTHER USEFUL SCAPY COMMANDS
-print(pkt.summary()+"\n") # Print the layers of a packet
-
-REMOVING A LAYER (IPv6ExtHdrRouting) FROM A PACKET, taken from https://stackoverflow.com/questions/46876196/how-to-remove-a-layer-from-a-packet-in-python-using-scapy
-#pkt=IPv6()/IPv6ExtHdrRouting()/ICMPv6EchoRequest()
-#pkt2=pkt[ICMPv6EchoRequest]
-#pkt[IPv6].remove_payload()
-#pkt /=pkt2
-
-Generate packet from raw bytes: https://stackoverflow.com/questions/27262291/how-to-create-a-scapy-packet-from-raw-bytes
-'''
