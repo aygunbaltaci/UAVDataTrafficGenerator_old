@@ -1,4 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+#####################################################
+# 25.05.2020
+# 
+# This code generates UAV data traffic for
+# uplink channel (from remote controller to UAV).
+#
+# Author: Aygün Baltaci
+# Institution: Technical University of Munich
+#
+# Licence: 
+#
+#####################################################
 
 from scapy.all import *
 from scapy.utils import rdpcap
@@ -10,12 +23,14 @@ import numpy as np
 
 # ======== variables
 inputFileName = "straightAscend_flight1_downlink_cut.pcap"
+outputfolder = "outputfiles"
 outputFileName = "downlink2.pcap"
 srcIP = "10.0.0.201" # !!! UPDATE !!! UPDATE THIS LINE EVERYTIME CLIENT HAS NEW IP !!! OTHERWISE, PACKETS MAY NOT REACH TO SERVER SIDE.
 dstIP = "10.0.0.208" # !!! UPDATE !!! IP addr of server
 srcPort = 47813 # UDP port at client
 dstPort = 47811 # UDP port at server
 date = datetime.now().strftime('%Y%m%d_%H%M%S')
+buffercheck_frequency = 1
 
 def pkt_addLayers(pkt):
 	pkt = UDP()/pkt
@@ -51,21 +66,17 @@ def main():
 			buffer += (camerastatus)
 			buffer += (batterystatus)
 		
-		if i % 1 == 0: # (not throttle is None or not pitch is None or cameraControl) and 
+		if i % buffercheck_frequency == 0: # (not throttle is None or not pitch is None or cameraControl) and 
 			k = 0
-			l = True
 				
 			for j in range(math.ceil(len(buffer) / maxPktLen)):
 				delayProb = np.random.uniform(0, 1)
 				if delayProb > 0.8:
-					sleepTime = np.random.uniform(0, 0.2)
+					sleepTime = np.random.uniform(0, buffercheck_frequency / 10)
 					time.sleep(sleepTime)
 
-				if l == False:
-					time.sleep(0.1)
+				time.sleep(0.1) # TODO need this? 
 					
-				#print("Generate packet")
-				print("Buffer length: %d" %len(buffer))
 				pkt = buffer[len(buffer) - 1 - maxPktLen:]
 				buffer = buffer[:len(buffer) - 1 - maxPktLen]
 				pkt = pkt_addLayers(pkt)
@@ -73,18 +84,18 @@ def main():
 				pktTime.append(timeDiff)
 				pktLen.append(len(pkt))
 				if int(prevTime / 100) != int(pkt.time / 100):
-					print(int(prevTime / 100), int(pkt.time / 100))
-					dataRate.append(totalPktLen * 8) # multiply by 8 to conver bytes to bits
+					#print(int(prevTime / 100), int(pkt.time / 100))
+					dataRate.append(totalPktLen * 8) # multiply by 8 to convert bytes to bits
 					totalPktLen = 0
 				else:
 					dataRate.append("")
 				totalPktLen += len(pkt)	
 				pktList.append(pkt)
 				prevTime = pkt.time
-				l = False
+			print("Num of gen. pkts: %d" %len(pktTime))
 		i += 1
-		print("Num of pkts: %d" %len(pktTime))
-		with open(date + '.csv', 'w') as outputFile:
+		
+		with open(outputfolder + os.sep + date + '.csv', 'w') as outputFile:
 			outputFile.write("{}, {}, {}\n".format("Packet Inter-arrival (ms)", "Packet Length (bytes)", "Data Rate (bps)"))
 			for x in zip(pktTime, pktLen, dataRate):
 				outputFile.write("{}, {}, {}\n".format(x[0], x[1], x[2]))
