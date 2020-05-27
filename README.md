@@ -11,7 +11,10 @@ UAVDataTrafficGenerator is a set of tool to simulate the data traffic between UA
 
 ## Usage
 **Run the program**
-> generatetraffic.py
+> ./generatetraffic.py
 
 Select the wireless channel you want to produce traffic for, press [enter] to start and to stop the traffic generation. 
-For more information regarding the traffic models, please refer to our study here:
+For more information regarding the traffic models, please refer to our study here.
+
+## Copyright
+This code is licensed under GNU General Public License v3.0. For further information, please refer to [LICENSE](./B/LICENSE)
