@@ -157,8 +157,9 @@ def main():
 		if i % frequency_buffer == 0: 
 				j, k = 0, 0
 
+				buffer_length = len(buffer)
 				while True:
-					if (downlink and (k == len(buffer) or len(buffer) == 0)) or (uplink and (j == math.ceil(len(buffer) / pkt_length_maximum) - 1)):
+					if (downlink and (k == len(buffer) or len(buffer) == 0)) or (uplink and (j == math.ceil(buffer_length / pkt_length_maximum))):
 						break
 					delayProb = np.random.uniform(0, 1)
 					
