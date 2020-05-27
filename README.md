@@ -17,4 +17,4 @@ Select the wireless channel you want to produce traffic for, press [enter] to st
 For more information regarding the traffic models, please refer to our study here.
 
 ## Copyright
-This code is licensed under GNU General Public License v3.0. For further information, please refer to [LICENSE](./B/LICENSE)
+This code is licensed under GNU General Public License v3.0. For further information, please refer to [LICENSE](LICENSE)
