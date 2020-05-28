@@ -17,7 +17,7 @@ Select the wireless channel you want to produce traffic for, press [enter] to st
 For more information regarding the traffic models, please refer to our study here.
 
 ## Results
-Generated results are saved in the folder *outputfiles*:
+Generated results are saved in the folder *outputfiles/*:
 - **.csv**: Statistical results in terms of packet inter-arrival, packet length and data rate
 - **.pcap**: The record of the generated packets
 - **.pdf**: The distribution graphs of the statistics in *.csv* file
