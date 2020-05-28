@@ -1,6 +1,6 @@
 # UAVDataTrafficGenerator 
 
-UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the data distribution models derived from experimental UAV measurements. It is the outcome of our paper *Experimental Data Traffic Modeling and Network Performance Analysis of UAVs*, which is presented at *xxx*. 
+UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the data distribution models derived from experimental UAV measurements. It is the outcome of our paper *[Experimental Data Traffic Modeling and Network Performance Analysis of UAVs]()*, which is presented at *[xxx]()*. 
 
 ## Dependencies
 **Python3**
