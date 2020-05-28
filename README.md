@@ -6,8 +6,8 @@ UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the da
 **Python3**
 > sudo apt install python3-dev python3-pip
 
-**Keyboard, numpy and scapy libraries**
-> pip3 install keyboard numpy scapy 
+**Keyboard, matplotlib, numpy and scapy libraries**
+> pip3 install keyboard matplotlib numpy scapy 
 
 ## Usage
 **Run the program**
