@@ -14,7 +14,7 @@ UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the da
 > python3 generatetraffic.py
 
 Select the wireless channel, [d] or [u], you want to produce traffic for, press [Enter] to start and to stop the traffic generation. 
-For more information regarding the traffic models, please refer to our study [here]().
+For more information regarding the traffic models, please refer to our paper.
 
 ## Results
 Generated results are saved in the folder *outputfiles/*:
