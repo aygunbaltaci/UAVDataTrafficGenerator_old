@@ -23,7 +23,7 @@ Generated results are saved in the folder *outputfiles/*:
 - **.pdf**: The distribution graphs of the statistics in *.csv* file
 
 ## uav_datatraces/
-Sample UDP data traffic, which are collected during measurements with UAVs (DJI Spark, DJI Mavic and Parrot AR 2.0) are provided.
+Sample of original UDP data traffic of UAVs (DJI Spark, DJI Mavic and Parrot AR 2.0) are provided.
 
 ## Copyright
 This code is licensed under GNU General Public License v3.0. For further information, please refer to [LICENSE](LICENSE)
