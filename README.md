@@ -16,6 +16,7 @@ UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the da
 Select the channel, [d]*ownlink* or [u]*plink*, and press [Enter] to start and to stop the traffic generation. 
 For more information regarding the traffic models, please refer to our paper.
 
+You should generate at least **~3000 packets** to observe the distributions correctly.
 ## Results
 Generated results are saved in the folder *outputfiles/*:
 - **.csv**: Statistical results in terms of packet inter-arrival, packet length and data rate
