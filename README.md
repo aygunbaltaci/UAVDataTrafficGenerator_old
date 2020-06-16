@@ -13,10 +13,14 @@ UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the da
 **Run the program**
 > python3 generate_uavtraffic.py
 
-Select the channel, [d]*ownlink* or [u]*plink*, and press [Enter] to start and to stop the traffic generation. 
-For more information regarding the traffic models, please refer to our paper.
+- Select the channel, [d]*ownlink* or [u]*plink*, and press [Enter] to start and to stop the traffic generation. 
 
-You should generate at least **~3000 packets** to observe the distributions correctly.
+- You should generate at least **~3000 packets** to observe the distributions correctly.
+
+- For more information regarding the traffic models, please refer to our paper.
+
+- For graph-related settings, you may find them all in *config_matplotlibrc.py*, which is an excerpt of [matplotlibrc configuration file](https://matplotlib.org/3.2.1/tutorials/introductory/customizing.html). 
+
 ## Results
 Generated results are saved in the folder *outputfiles/*:
 - **.csv**: Statistical results in terms of packet inter-arrival, packet length and data rate
