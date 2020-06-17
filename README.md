@@ -6,17 +6,19 @@ UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the da
 **Python3**
 > sudo apt install python3-dev python3-pip
 
-**Keyboard, matplotlib, numpy and scapy libraries**
-> pip3 install keyboard matplotlib numpy scapy 
+**Matplotlib, numpy and scapy libraries**
+> pip3 install matplotlib numpy scapy 
 
 ## Usage
 **Run the program**
-> python3 generate_uavtraffic.py -d -n 5000
+> python3 generate_uavtraffic.py
 
-- *-d* for selecting downlink and *-u* for uplink channel
-  - Only 1 channel can be selected at a time. 
-
+**Optional Parameters**:
+- *--uplink | -u* to generate packets for uplink channel
+  - Otherwise, Downlink channel is the default
+  - Only 1 channel can be selected at each run
 - *-n* is the number of packets to generate
+
 
 - You should generate at least **~5000 packets** to observe the distributions correctly.
 
