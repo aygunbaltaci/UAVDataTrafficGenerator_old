@@ -13,8 +13,13 @@ UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the da
 **Run the program**
 > python3 generate_uavtraffic.py
 
-Select the channel, [d]*ownlink* or [u]*plink*, and press [Enter] to start and to stop the traffic generation. 
-For more information regarding the traffic models, please refer to our paper.
+- Select the channel, [d]*ownlink* or [u]*plink*, and press [Enter] to start the traffic generation. Press [F4] to stop the program, then it will generate and display the Probability Density Function (PDF) graphs.  
+
+- You should generate at least **~3000 packets** to observe the distributions correctly.
+
+- For more information regarding the traffic models, please refer to our paper.
+
+- For graph-related settings, you may find them all in *config_matplotlibrc.py*, which is an excerpt of [matplotlibrc configuration file](https://matplotlib.org/3.2.1/tutorials/introductory/customizing.html). 
 
 ## Results
 Generated results are saved in the folder *outputfiles/*:
@@ -23,7 +28,7 @@ Generated results are saved in the folder *outputfiles/*:
 - **.pdf**: The distribution graphs of the statistics in *.csv* file
 
 ## uav_datatraces/
-Sample UDP data traffic, which are collected during measurements with UAVs (DJI Spark, DJI Mavic and Parrot AR 2.0) are provided.
+Sample of original UDP data traces of the UAVs (DJI Spark, DJI Mavic and Parrot AR 2.0) are provided for the ones who want to observe the actual UAV data traffic characteristics.
 
 ## Copyright
 This code is licensed under GNU General Public License v3.0. For further information, please refer to [LICENSE](LICENSE)
