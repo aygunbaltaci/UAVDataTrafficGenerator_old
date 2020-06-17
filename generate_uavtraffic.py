@@ -218,7 +218,7 @@ def main():
 
 # ======== Parse user inputs
 def parse_args():
-	parser = argparse.ArgumentParser(description = "UAV Data Generator")
+	parser = argparse.ArgumentParser(description = "UAV Data Traffic Generator")
 
 	parser.add_argument('-n',
 						action = "store",
@@ -243,8 +243,10 @@ def parse_args():
 		filename_extension = '_uplink'
 		title = 'Uplink'
 
-	if not int(args.n):
-		print("Please provide an integer entry for number of packets.")
+	try:
+		args.n = int(args.n)
+	except ValueError:
+		print("Your input for -n is not valid.\nPlease provide an integer.")
 		sys.exit(0)
 
 	return args, filename_extension, title
