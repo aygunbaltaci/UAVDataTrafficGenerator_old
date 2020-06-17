@@ -13,7 +13,10 @@ UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the da
 **Run the program**
 > python3 generate_uavtraffic.py
 
-- Select the channel, [d]*ownlink* or [u]*plink*, and press [Enter] to start the traffic generation. Press [F4] to stop the program, then it will generate and display the Probability Density Function (PDF) graphs (may need to press [F4] couple of times until program catches the key press).  
+- Select the channel, [d]*ownlink* or [u]*plink*, and press [Enter] to start the traffic generation. 
+
+- Press [F4] to stop the program (may need to press [F4] couple of times until program catches the key press).
+  -  It will generate and display the Probability Density Function (PDF) graphs
 
 - You should generate at least **~3000 packets** to observe the distributions correctly.
 
