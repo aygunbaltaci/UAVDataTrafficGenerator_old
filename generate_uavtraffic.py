@@ -40,7 +40,6 @@ legend_location = (0.5, 0.05)
 numofbins = [15, 15, 10] # recommended for dl: [25, 25, 10], for ul: []
 xticks = [np.arange(2, 11, 2), np.arange(0, 601, 200), np.arange(0, 201, 50)] # recommended for dl: [np.arange(2, 11, 2), np.arange(0, 601, 200), np.arange(0, 201, 50)], recommended for ul: [np.arange(0, 351, 50), np.arange(0, 601, 200), np.arange(0, 1551, 250)]
 title = 'Downlink'
-transparency = 0.65
 
 # outputfiles-related
 outputfile_packets_extension = 'pcap'
@@ -60,23 +59,21 @@ port_destination = 47814
 # Each number corresponds to in how many CPU 
 # cycles the parameter is generated.
 # ========================================
-# downlink
 frequency_buffer = 3 
-frequency_camera_control_record_video = 7 
-frequency_land_takeoff = 3
+# downlink
+frequency_land_takeoff = 7
 frequency_pitch_roll = 2
-frequency_return_home_trim = 5
 frequency_throttle_yaw = 1
+frequency_return_home = 5
 # uplink
 frequency_batterystatus_camerastatus = 6
-frequency_buffer = 3
 frequency_imustatus_rotorstatus = 2
 frequency_video = 1
 
 # ======== Ask user for which channel to generate data
 def ask_channel(downlink, uplink):
 	while True: 
-		user_input = input("Select channel. Enter [d] for downlink (UAV -> RC) and [u] for uplink (RC -> UAV).\n")
+		user_input = input("\nSelect channel. Enter [d] for downlink (UAV -> RC) and [u] for uplink (RC -> UAV).\nPress [F4] anytime to terminate the program.\n\n")
 		if user_input in ['d', 'D']:
 			downlink = True
 			filename_extension = '_downlink'
@@ -87,27 +84,20 @@ def ask_channel(downlink, uplink):
 			break
 		else:
 			print("Your input is NOT valid.")
+	print("\n")
 	return downlink, filename_extension, uplink
 
 # ======== Send downlink data to UDP buffer
-def data_to_buffer_downlink(buffer, camera_control, i, land, pitch, return_home, 
-		record_video, roll, takeoff, throttle, trim, yaw):
+def data_to_buffer_downlink(buffer, i, land_takeoff, pitch_roll, return_home, throttle_yaw):
 	# add data to UDP buffer
 	if i % frequency_throttle_yaw == 0:
-		buffer += (throttle)
-		buffer += (yaw)
+		buffer += (throttle_yaw)
 	if i % frequency_pitch_roll == 0:
-		buffer += (pitch)
-		buffer += (roll)
+		buffer += (pitch_roll)
 	if i % frequency_land_takeoff == 0:
-		buffer += (land)
-		buffer += (takeoff)
-	if i % frequency_return_home_trim == 0:
+		buffer += (land_takeoff)
+	if i % frequency_return_home == 0:
 		buffer += (return_home)
-		buffer += (trim)
-	if i % frequency_camera_control_record_video == 0:
-		buffer += (camera_control)
-		buffer += (record_video)
 	return buffer
 
 # ======== Send uplink data to UDP buffer
@@ -127,17 +117,11 @@ def data_to_buffer_uplink(batterystatus, buffer, camerastatus,
 # ======== Generate data for downlink channel
 def generate_data_downlink():
 	# control data
-	camera_control = 'c' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	land = 't' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	pitch = 'r' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	return_home = 'h' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	record_video = 'c' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	roll = 'r' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	takeoff = 't' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6]) 
-	throttle =  'l' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	trim = 'h' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	yaw =  'l' * np.random.choice([2**1, 2**2, 2**3, 2**4, 2**5, 2**6])
-	return camera_control, land, pitch, return_home, record_video, roll, takeoff, throttle, trim, yaw
+	land_takeoff = 't' * np.random.choice([2**5, 2**6, 2**7])
+	pitch_roll = 'r' * np.random.choice([2**5, 2**6, 2**7])
+	return_home = 'h' * np.random.choice([2**5, 2**6, 2**7])
+	throttle_yaw =  'l' * np.random.choice([2**5, 2**6, 2**7])
+	return land_takeoff, pitch_roll, return_home, throttle_yaw
 
 # ======== Generate data for uplink channel
 def generate_data_uplink():
@@ -148,7 +132,7 @@ def generate_data_uplink():
 	rotorstatus = 'o' * np.random.choice([2**5, 2**6, 2**7])
 
 	# video data
-	video = 'v' * int(np.random.uniform(5000, 8000)) # range is based on the actual measured video data from DJI Spark
+	video = 'v' * int(np.random.normal(6500, 1500)) # range is based on the actual measured video data from DJI Spark
 	return batterystatus, camerastatus, imustatus, rotorstatus, video
 
 # ======== Generate distribution graphs
@@ -172,21 +156,18 @@ def histogram(bins, data, label_x, label_y, plot, xticks):
 			bottom = 0,
 			align = 'left',
 			label = legend,
-			orientation = 'vertical', 
-			alpha = transparency)
+			orientation = 'vertical')
 	plot.set_xlabel(label_x)
 	plot.set_ylabel(label_y)
-	ticks_start, ticks_end = plot.get_xlim()
-	round_distance = int((ticks_end - ticks_start) / 5)
-	plot.xaxis.set_ticks(np.arange(round_up(ticks_start, round_distance), round_up(ticks_end, round_distance), round_distance))
+	plot.locator_params(nbins = 5) # number of ticks in the graphs
 	return plot
 
 # ======== Application layer - Generate data based on the applications
 def layer_application(buffer, downlink, i, uplink):
 	if downlink:
-		camera_control, land, pitch, return_home, record_video, roll, takeoff, throttle, trim, yaw = generate_data_downlink()
-		buffer = data_to_buffer_downlink(buffer, camera_control, i,
-				land, pitch, return_home, record_video, roll, takeoff, throttle, trim, yaw)
+		land_takeoff, pitch_roll, return_home, throttle_yaw = generate_data_downlink()
+		buffer = data_to_buffer_downlink(buffer, i, land_takeoff, pitch_roll, 
+				return_home, throttle_yaw)
 	else:
 		batterystatus, camerastatus, imustatus, rotorstatus, video = generate_data_uplink()
 		buffer = data_to_buffer_uplink(batterystatus, buffer, camerastatus, i,
@@ -206,7 +187,7 @@ def layer_transport(buffer, datarate, downlink, firstrun, i,
 				
 				#if buffer[len(buffer) - 1 - k] == 't' and buffer[len(buffer) - 2 - k] != 't':
 				if (downlink and (buffer[len(buffer) - 1 - k] != buffer[len(buffer) - 2 - k])) or uplink:
-					if delayProb > 0.8:
+					if (downlink and delayProb > 0.95) or (uplink and delayProb > 0.8): # probability for processing delay. Probability for dl and ul different to make the 2nd peak obvious on DL
 						time_sleep = np.random.uniform(0, frequency_buffer / 10)
 						time.sleep(time_sleep)
 
@@ -224,7 +205,9 @@ def layer_transport(buffer, datarate, downlink, firstrun, i,
 					datarate, firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = statistics_results(datarate, 
 							firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous)
 					j += 1
-			print("# of pkts: %d" %len(pkt_interarrival))
+			sys.stdout.write("Number of generated packets = %d   \r" %len(pkt_interarrival))
+			sys.stdout.flush()
+			#print("# of pkts: %d" %len(pkt_interarrival))
 	return buffer, datarate, firstrun, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous
 
 # ======== Main function
@@ -244,7 +227,7 @@ def main():
 				buffer, datarate, downlink, firstrun, i, pkt_interarrival, pkt_length, 
 				pkt_length_total, pkt_list, time_previous, uplink)
 		i += 1
-		if keyboard.is_pressed('\n'):
+		if keyboard.is_pressed('F4'):
 			break
 		time.sleep(0.1)
 	print("\nPacket generation is completed!\nGraph is being prepared, please hold on...")
