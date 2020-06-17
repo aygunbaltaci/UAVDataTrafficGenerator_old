@@ -153,7 +153,7 @@ parameters = {
 'text.color'          : fontColor, # dark grey
 
 #### LaTeX customizations. See http://wiki.scipy.org/Cookbook/Matplotlib/UsingTex
-'text.usetex'        : True,  ## use latex for all text handling. The following fonts
+'text.usetex'        : False,  ## use latex for all text handling. The following fonts
                               ## are supported through the usual rc parameter settings:
                               ## new century schoolbook, bookman, times, palatino,
                               ## zapf chancery, charter, serif, sans-serif, helvetica,
@@ -162,7 +162,7 @@ parameters = {
                               ## If another font is desired which can loaded using the
                               ## LaTeX \usepackage command, please inquire at the
                               ## matplotlib mailing list
-'text.latex.preamble':r'\usepackage{libertine}',      ## IMPROPER USE OF THIS FEATURE WILL LEAD TO LATEX FAILURES
+#'text.latex.preamble':r'\usepackage{libertine}',      ## IMPROPER USE OF THIS FEATURE WILL LEAD TO LATEX FAILURES
                             ## AND IS THEREFORE UNSUPPORTED. PLEASE DO NOT ASK FOR HELP
                             ## IF THIS FEATURE DOES NOT DO WHAT YOU EXPECT IT TO.
                             ## text.latex.preamble is a single line of LaTeX code that

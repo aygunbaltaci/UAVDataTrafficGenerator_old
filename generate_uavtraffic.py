@@ -15,17 +15,16 @@
 #
 #####################################################
 
-from scapy.all import *
-from scapy.utils import rdpcap
-import time
+import argparse
+import config_matplotlibrc
 from datetime import datetime
 import math
 import matplotlib
 import matplotlib.pyplot as plt
-import keyboard
-import time
 import numpy as np
-import config_matplotlibrc
+from scapy.all import *
+from scapy.utils import rdpcap
+import time
 
 # ======== variables - modify them as you wish =========
 date = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -37,9 +36,7 @@ label_x = ['Data Rate (kbps)', 'Packet Inter-arrival (ms)', 'Packet Length (byte
 label_y = 'Density'
 legend = 'Simulated data'
 legend_location = (0.5, 0.05)
-numofbins = [15, 15, 10] # recommended for dl: [25, 25, 10], for ul: []
-xticks = [np.arange(2, 11, 2), np.arange(0, 601, 200), np.arange(0, 201, 50)] # recommended for dl: [np.arange(2, 11, 2), np.arange(0, 601, 200), np.arange(0, 201, 50)], recommended for ul: [np.arange(0, 351, 50), np.arange(0, 601, 200), np.arange(0, 1551, 250)]
-title = 'Downlink'
+numofbins = [15, 15, 10] # recommended bin sizes for data rate, packet interval, pkt length, respectively 10], for ul: []
 
 # outputfiles-related
 outputfile_packets_extension = 'pcap'
@@ -70,23 +67,6 @@ frequency_batterystatus_camerastatus = 6
 frequency_imustatus_rotorstatus = 2
 frequency_video = 1
 
-# ======== Ask user for which channel to generate data
-def ask_channel(downlink, uplink):
-	while True: 
-		user_input = input("\nSelect channel. Enter [d] for downlink (UAV -> RC) and [u] for uplink (RC -> UAV).\nPress [F4] anytime to terminate the program.\n\n")
-		if user_input in ['d', 'D']:
-			downlink = True
-			filename_extension = '_downlink'
-			break
-		elif user_input in ['u', 'U']:
-			uplink = True
-			filename_extension = '_uplink'
-			break
-		else:
-			print("Your input is NOT valid.")
-	print("\n")
-	return downlink, filename_extension, uplink
-
 # ======== Send downlink data to UDP buffer
 def data_to_buffer_downlink(buffer, i, land_takeoff, pitch_roll, return_home, throttle_yaw):
 	# add data to UDP buffer
@@ -102,7 +82,7 @@ def data_to_buffer_downlink(buffer, i, land_takeoff, pitch_roll, return_home, th
 
 # ======== Send uplink data to UDP buffer
 def data_to_buffer_uplink(batterystatus, buffer, camerastatus, 
-				i, imustatus, rotorstatus, video):
+		i, imustatus, rotorstatus, video):
 	# add data to UDP buffer
 	if i % frequency_video == 0:
 		buffer += (video)
@@ -141,12 +121,12 @@ def graph_generate(datarate, downlink, filename_extension, pkt_interarrival, pkt
 	fig, host = prepare_graph()
 	datarate = list(filter(None, datarate)) # remove empty entries
 	for i in [datarate, pkt_interarrival, pkt_length]:
-		host[0, cnt] = histogram(numofbins[cnt], i, label_x[cnt], label_y, host[0, cnt], xticks[cnt])
+		host[0, cnt] = histogram(numofbins[cnt], i, label_x[cnt], label_y, host[0, cnt])
 		cnt += 1
 	return fig
 
 # ======== Generate histogram plot
-def histogram(bins, data, label_x, label_y, plot, xticks):
+def histogram(bins, data, label_x, label_y, plot):
 	plot.hist(
 			data,
 			bins = bins,
@@ -175,7 +155,7 @@ def layer_application(buffer, downlink, i, uplink):
 	return buffer
 
 # ======== Transport layer - Check the UDP buffer and generate packets
-def layer_transport(buffer, datarate, downlink, firstrun, i, 
+def layer_transport(buffer, datarate, downlink, firstrun, i, num_packets,
 		pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous, uplink):
 	if i % frequency_buffer == 0: 
 			j, k = 0, 0
@@ -205,9 +185,8 @@ def layer_transport(buffer, datarate, downlink, firstrun, i,
 					datarate, firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = statistics_results(datarate, 
 							firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous)
 					j += 1
-			sys.stdout.write("Number of generated packets = %d   \r" %len(pkt_interarrival))
+			sys.stdout.write("Number of generated packets = %d out of %d   \r" %(len(pkt_interarrival), num_packets))
 			sys.stdout.flush()
-			#print("# of pkts: %d" %len(pkt_interarrival))
 	return buffer, datarate, firstrun, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous
 
 # ======== Main function
@@ -215,27 +194,60 @@ def main():
 	buffer = ''
 	pkt_list, pkt_interarrival, pkt_length, pkt_previous, datarate = [], [], [], [], []
 	i, time_previous, pkt_length_total = 0, 0, 0
-	downlink, uplink = False, False
 
-	downlink, filename_extension, uplink = ask_channel(downlink, uplink)
-	time.sleep(0.5) # sleep half a second to avoid multiple press of Enter
+	args, filename_extension, title = parse_args()
 	firstrun = True
 	# main loop
+	print("\nPacket generation begins on %s channel" %title)
 	while True:
-		buffer = layer_application(buffer, downlink, i, uplink)
+		buffer = layer_application(buffer, args.downlink, i, args.uplink)
 		buffer, datarate, firstrun, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = layer_transport(
-				buffer, datarate, downlink, firstrun, i, pkt_interarrival, pkt_length, 
-				pkt_length_total, pkt_list, time_previous, uplink)
+				buffer, datarate, args.downlink, firstrun, i, int(args.n), pkt_interarrival, pkt_length, 
+				pkt_length_total, pkt_list, time_previous, args.uplink)
 		i += 1
-		if keyboard.is_pressed('F4'):
+
+		if len(pkt_interarrival) >= int(args.n):
 			break
 		time.sleep(0.1)
 	print("\nPacket generation is completed!\nGraph is being prepared, please hold on...")
 	
-	fig = graph_generate(datarate, downlink, filename_extension, pkt_interarrival, pkt_length)
-	save_output(datarate, fig, filename_extension, pkt_interarrival, pkt_length, pkt_list)
+	fig = graph_generate(datarate, args.downlink, filename_extension, pkt_interarrival, pkt_length)
+	save_output(datarate, fig, filename_extension, pkt_interarrival, pkt_length, pkt_list, title)
+	print("\n\nDone!")
 	show_graph()
-	
+
+# ======== Parse user inputs
+def parse_args():
+	parser = argparse.ArgumentParser(description = "UAV Data Generator")
+
+	parser.add_argument('-n',
+						action = "store",
+						help = "Number of packets to generate. 5000 is default",
+						default = 5000,
+						required = False)
+
+	parser.add_argument('--uplink', '-u',
+						action = "store_true",
+						help = "Generate packets for uplink channel. Otherwise, downlink channel is default.",
+						default = False,
+						required = False)
+
+	args = parser.parse_args()
+
+	if not args.uplink:
+		args.downlink = True
+		filename_extension = '_downlink'
+		title = 'Downlink'
+	else:
+		args.downlink = False
+		filename_extension = '_uplink'
+		title = 'Uplink'
+
+	if not int(args.n):
+		print("Please provide an integer entry for number of packets.")
+		sys.exit(0)
+
+	return args, filename_extension, title
 
 # ======== Create packet
 def pkt_create(payload):
@@ -258,11 +270,11 @@ def prepare_graph():
 
 # ======== Round up the input to the nearest base. Taken from: https://stackoverflow.com/questions/26454649/python-round-up-to-the-nearest-ten 
 def round_up(x, base):
-    return int(math.ceil(x / base)) * base
+	return int(math.ceil(x / base)) * base
 
 # ======== Save all output files
-def save_output(datarate, fig, filename_extension, pkt_interarrival, pkt_length, pkt_list):
-	save_graph(fig, filename_extension)
+def save_output(datarate, fig, filename_extension, pkt_interarrival, pkt_length, pkt_list, title):
+	save_graph(fig, filename_extension, title)
 	save_packets(filename_extension, pkt_list)
 	save_statistics(datarate, filename_extension, pkt_interarrival, pkt_length)
 
@@ -278,7 +290,7 @@ def save_statistics(datarate, filename_extension, pkt_interarrival, pkt_length):
 			outputfile.write("{}, {}, {}\n".format(x[0], x[1], x[2]))
 
 # ======== Save graph
-def save_graph(fig, filename_extension):
+def save_graph(fig, filename_extension, title):
 	handles, labels = plt.gca().get_legend_handles_labels() # to avoid duplicate labels. Taken from: https://stackoverflow.com/questions/13588920/stop-matplotlib-repeating-labels-in-legend
 	by_label = dict(zip(labels, handles))
 	fig.legend(
@@ -287,10 +299,10 @@ def save_graph(fig, filename_extension):
 			bbox_to_anchor = legend_location)
 	fig.suptitle(title)
 	fig.savefig(
-            '%s' %outputfolder + os.sep + 
-            '%s.%s' %(date + filename_extension, figure_format), 
-            bbox_inches = 'tight', 
-            format = figure_format)
+			'%s' %outputfolder + os.sep + 
+			'%s.%s' %(date + filename_extension, figure_format), 
+			bbox_inches = 'tight', 
+			format = figure_format)
 
 # ======== Show graph
 def show_graph():
