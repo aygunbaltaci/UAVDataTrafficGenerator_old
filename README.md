@@ -3,10 +3,10 @@
 UAVDataTrafficGenerator is a UAV-RC data traffic generation tool based on the data distribution models derived from experimental UAV measurements. It is the outcome of our paper *[Experimental Data Traffic Modeling and Network Performance Analysis of UAVs]()*, which is presented at *[xxx]()*. 
 
 ## Dependencies
-**Python3**
+**[Python3](https://www.python.org/download/releases/3.0/)**
 > sudo apt install python3-dev python3-pip
 
-**Matplotlib, numpy and scapy libraries**
+**[Matplotlib](https://matplotlib.org/), [NumPy](https://numpy.org/) and [Scapy](https://scapy.net/) libraries**
 > pip3 install matplotlib numpy scapy 
 
 ## Usage
