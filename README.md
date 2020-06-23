@@ -33,5 +33,7 @@ Generated results are saved in the folder *outputfiles/*:
 ## uav_datatraces/
 Sample of original UDP data traces of the UAVs (DJI Spark, DJI Mavic and Parrot AR 2.0) are provided for the ones who want to observe the actual UAV data traffic characteristics.
 
+Note that MAC addresses are changed and the payloads are removed from the packets for security purpose. You may observe the original packet lengths in the UDP header (*udp.length* field in Wireshark) 
+
 ## Copyright
 This code is licensed under GNU General Public License v3.0. For further information, please refer to [LICENSE](LICENSE)

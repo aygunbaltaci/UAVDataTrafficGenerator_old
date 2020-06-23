@@ -6,12 +6,12 @@
 # This code generates UAV data traffic according to
 # distribution models based on actual UAV data. 
 # 
-# Prerequisites: pip3 install keyboard numpy scapy
+# Prerequisites: pip3 install matplotlib numpy scapy
 #
 # Author: Aygün Baltaci
 # Institution: Technical University of Munich
 #
-# License: 
+# License: GNU General Public License v3.0
 #
 #####################################################
 
@@ -36,7 +36,7 @@ label_x = ['Data Rate (kbps)', 'Packet Inter-arrival (ms)', 'Packet Length (byte
 label_y = 'Density'
 legend = 'Simulated data'
 legend_location = (0.5, 0.05)
-numofbins = [15, 15, 10] # recommended bin sizes for data rate, packet interval, pkt length, respectively 10], for ul: []
+numofbins = [15, 10, 10] # recommended bin sizes for data rate, packet interval, pkt length, respectively 10], for ul: []
 
 # outputfiles-related
 outputfile_packets_extension = 'pcap'
@@ -53,8 +53,8 @@ port_destination = 47814
 
 # ========================================
 # Frequencies of data generation. 
-# Each number corresponds to in how many CPU 
-# cycles the parameter is generated.
+# Each number corresponds to in how many  
+# CPU cycles the parameter is generated.
 # ========================================
 frequency_buffer = 3 
 # downlink
@@ -96,7 +96,6 @@ def data_to_buffer_uplink(batterystatus, buffer, camerastatus,
 
 # ======== Generate data for downlink channel
 def generate_data_downlink():
-	# control data
 	land_takeoff = 't' * np.random.choice([2**5, 2**6, 2**7])
 	pitch_roll = 'r' * np.random.choice([2**5, 2**6, 2**7])
 	return_home = 'h' * np.random.choice([2**5, 2**6, 2**7])
@@ -121,7 +120,7 @@ def graph_generate(datarate, downlink, filename_extension, pkt_interarrival, pkt
 	fig, host = prepare_graph()
 	datarate = list(filter(None, datarate)) # remove empty entries
 	for i in [datarate, pkt_interarrival, pkt_length]:
-		host[0, cnt] = histogram(numofbins[cnt], i, label_x[cnt], label_y, host[0, cnt])
+		host[0, cnt] = histogram(numofbins[cnt], i, label_x[cnt], label_y, host[0, cnt]) # generate hist graphs
 		cnt += 1
 	return fig
 
@@ -145,12 +144,12 @@ def histogram(bins, data, label_x, label_y, plot):
 # ======== Application layer - Generate data based on the applications
 def layer_application(buffer, downlink, i, uplink):
 	if downlink:
-		land_takeoff, pitch_roll, return_home, throttle_yaw = generate_data_downlink()
-		buffer = data_to_buffer_downlink(buffer, i, land_takeoff, pitch_roll, 
+		land_takeoff, pitch_roll, return_home, throttle_yaw = generate_data_downlink() # fetch data
+		buffer = data_to_buffer_downlink(buffer, i, land_takeoff, pitch_roll, # send data to buffer
 				return_home, throttle_yaw)
 	else:
-		batterystatus, camerastatus, imustatus, rotorstatus, video = generate_data_uplink()
-		buffer = data_to_buffer_uplink(batterystatus, buffer, camerastatus, i,
+		batterystatus, camerastatus, imustatus, rotorstatus, video = generate_data_uplink() # fetch data
+		buffer = data_to_buffer_uplink(batterystatus, buffer, camerastatus, i, # send data to buffer
 				imustatus, rotorstatus, video)
 	return buffer
 
@@ -160,29 +159,31 @@ def layer_transport(buffer, datarate, downlink, firstrun, i, num_packets,
 	if i % frequency_buffer == 0: 
 			j, k = 0, 0
 			buffer_length = len(buffer)
+
 			while True:
-				if (downlink and (k == len(buffer) or len(buffer) == 0)) or (uplink and (j == math.ceil(buffer_length / pkt_length_maximum))):
+				if (downlink and (k == len(buffer) or len(buffer) == 0)) or (uplink and (j == math.ceil(buffer_length / pkt_length_maximum))): # buffer is emptied, exit the loop
 					break
 				delayProb = np.random.uniform(0, 1)
 				
-				#if buffer[len(buffer) - 1 - k] == 't' and buffer[len(buffer) - 2 - k] != 't':
-				if (downlink and (buffer[len(buffer) - 1 - k] != buffer[len(buffer) - 2 - k])) or uplink:
+				#if buffer[len(buffer) - 1 - k] == 'l' and buffer[len(buffer) - 2 - k] != 'l': # generate packets based on one parameter - old method
+				if (downlink and (buffer[len(buffer) - 1 - k] != buffer[len(buffer) - 2 - k])) or uplink: # generate packets per parameter - new method
 					if (downlink and delayProb > 0.95) or (uplink and delayProb > 0.8): # probability for processing delay. Probability for dl and ul different to make the 2nd peak obvious on DL
-						time_sleep = np.random.uniform(0, frequency_buffer / 10)
+						time_sleep = np.random.uniform(0, frequency_buffer / 10) # generate processing delay
 						time.sleep(time_sleep)
 
-				if downlink and (buffer[len(buffer) - 1 - k] != buffer[len(buffer) - 2 - k]):
-					pkt = pkt_create(buffer[len(buffer) - 1 - k:]) # add UDP and IP headers
-					buffer = buffer[:len(buffer) - 1 - k]
-					datarate, firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = statistics_results(datarate, 
+				#if downlink and buffer[len(buffer) - 1 - k] == 'l' and buffer[len(buffer) - 2 - k] != 'l': # generate packets based on one parameter - old method
+				if downlink and (buffer[len(buffer) - 1 - k] != buffer[len(buffer) - 2 - k]): # generate downlink packets
+					pkt = pkt_create(buffer[len(buffer) - 1 - k:]) # generate packet
+					buffer = buffer[:len(buffer) - 1 - k] # remove packet from buffer
+					datarate, firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = statistics_results(datarate, # generate stats
 							firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous)
 					k = 0
 				elif downlink: 
 					k += 1
-				elif uplink:
-					pkt = pkt_create(buffer[len(buffer) - 1 - pkt_length_maximum:]) # add UDP and IP headers
-					buffer = buffer[:len(buffer) - 1 - pkt_length_maximum]
-					datarate, firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = statistics_results(datarate, 
+				elif uplink: # generate uplink packets
+					pkt = pkt_create(buffer[len(buffer) - 1 - pkt_length_maximum:]) # generate packet
+					buffer = buffer[:len(buffer) - 1 - pkt_length_maximum] # remove packet from buffer
+					datarate, firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = statistics_results(datarate, # generate stats
 							firstrun, pkt, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous)
 					j += 1
 			sys.stdout.write("Number of generated packets = %d out of %d   \r" %(len(pkt_interarrival), num_packets))
@@ -192,27 +193,27 @@ def layer_transport(buffer, datarate, downlink, firstrun, i, num_packets,
 # ======== Main function
 def main():
 	buffer = ''
-	pkt_list, pkt_interarrival, pkt_length, pkt_previous, datarate = [], [], [], [], []
+	pkt_list, pkt_interarrival, pkt_length, datarate = [], [], [], []
 	i, time_previous, pkt_length_total = 0, 0, 0
-
 	args, filename_extension, title = parse_args()
 	firstrun = True
-	# main loop
+	
 	print("\nPacket generation begins on %s channel" %title)
+	# main loop
 	while True:
-		buffer = layer_application(buffer, args.downlink, i, args.uplink)
-		buffer, datarate, firstrun, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = layer_transport(
+		buffer = layer_application(buffer, args.downlink, i, args.uplink) # run app layer
+		buffer, datarate, firstrun, pkt_interarrival, pkt_length, pkt_length_total, pkt_list, time_previous = layer_transport( # run transport layer
 				buffer, datarate, args.downlink, firstrun, i, int(args.n), pkt_interarrival, pkt_length, 
 				pkt_length_total, pkt_list, time_previous, args.uplink)
 		i += 1
 
-		if len(pkt_interarrival) >= int(args.n):
+		if len(pkt_interarrival) >= int(args.n): # requested number of packets generated
 			break
 		time.sleep(0.1)
 	print("\nPacket generation is completed!\nGraph is being prepared, please hold on...")
 	
-	fig = graph_generate(datarate, args.downlink, filename_extension, pkt_interarrival, pkt_length)
-	save_output(datarate, fig, filename_extension, pkt_interarrival, pkt_length, pkt_list, title)
+	fig = graph_generate(datarate, args.downlink, filename_extension, pkt_interarrival, pkt_length) # generate graph
+	save_output(datarate, fig, filename_extension, pkt_interarrival, pkt_length, pkt_list, title) # save all output files
 	print("\n\nDone!")
 	show_graph()
 
@@ -253,7 +254,7 @@ def parse_args():
 
 # ======== Create packet
 def pkt_create(payload):
-	pkt = IP() / UDP() / Raw(load = payload)
+	pkt = IP() / UDP() / Raw(load = payload) # add IP & UDP layers to the payload
 	pkt[IP].src = ip_source
 	pkt[IP].dst = ip_destination
 	pkt[UDP].sport = port_source 
@@ -262,7 +263,7 @@ def pkt_create(payload):
 
 # ======== Prepare subplots
 def prepare_graph(): 
-	plt.rcParams.update(config_matplotlibrc.parameters)
+	plt.rcParams.update(config_matplotlibrc.parameters) # fetch parameters from config_matplotlibrc.py
 	fig, host = plt.subplots(
 			1,  
 			3,  
